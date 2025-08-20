@@ -1,6 +1,6 @@
 """
-Tech Interview Copilot - Streamlit Application
-A sleek interview preparation tool using Gemini AI
+AI Interview Assistant - Modern Voice-Enabled Interview Preparation
+A sophisticated interview preparation platform with advanced AI capabilities
 """
 
 import streamlit as st
@@ -16,105 +16,52 @@ import tempfile
 # Load environment variables
 load_dotenv()
 
-# Configure page
+# Modern page configuration
 st.set_page_config(
-    page_title="Tech Interview Copilot",
-    page_icon="🤖",
-    layout="centered",
-    initial_sidebar_state="collapsed"
+    page_title="AI Interview Assistant",
+    page_icon="⚡",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+    menu_items={
+        'Get Help': None,
+        'Report a bug': None,
+        'About': "AI Interview Assistant - Your personal interview preparation companion"
+    }
 )
 
-# Custom CSS for professional styling
-st.markdown("""
-<style>
-    .main-header {
-        text-align: center;
-        color: #1f1f1f;
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-    .sub-header {
-        text-align: center;
-        color: #666;
-        font-size: 1.1rem;
-        margin-bottom: 2rem;
-    }
-    .upload-section {
-        background-color: #f8f9fa;
-        padding: 1.5rem;
-        border-radius: 10px;
-        border: 1px solid #e9ecef;
-        margin-bottom: 1.5rem;
-        color: #212529;
-    }
-    .chat-message {
-        padding: 1rem;
-        border-radius: 10px;
-        margin-bottom: 1rem;
-    }
-    .user-message {
-        background-color: #e3f2fd;
-        border-left: 4px solid #2196f3;
-        color: #1a1a1a;
-    }
-    .bot-message {
-        background-color: #f1f8e9;
-        border-left: 4px solid #4caf50;
-        color: #1a1a1a;
-    }
-    .status-success {
-        color: #2e7d32;
-        font-weight: 600;
-        background-color: #e8f5e8;
-        padding: 0.5rem;
-        border-radius: 5px;
-        border-left: 4px solid #4caf50;
-    }
-    .status-error {
-        color: #c62828;
-        font-weight: 600;
-        background-color: #ffebee;
-        padding: 0.5rem;
-        border-radius: 5px;
-        border-left: 4px solid #f44336;
-    }
-    .section-divider {
-        margin: 2rem 0;
-        border-top: 1px solid #e0e0e0;
-    }
-    .interview-instructions {
-        background-color: #fff3cd;
-        border: 1px solid #ffeaa7;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        color: #856404;
-        font-weight: 500;
-    }
-    .progress-container {
-        margin: 1rem 0;
-    }
-    .chat-message strong {
-        color: #2c3e50;
-        font-weight: 600;
-    }
-    .stTextArea textarea {
-        color: #212529 !important;
-        background-color: #ffffff !important;
-    }
-    .stTextInput input {
-        color: #212529 !important;
-        background-color: #ffffff !important;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Modern theme configuration using native Streamlit theming
+def configure_theme():
+    """Configure modern dark theme with Streamlit native theming"""
+    # Create config directory if it doesn't exist
+    config_dir = ".streamlit"
+    if not os.path.exists(config_dir):
+        os.makedirs(config_dir)
+    
+    # Create config.toml with modern theme
+    config_content = '''
+[theme]
+base = "dark"
+primaryColor = "#60A5FA"
+backgroundColor = "#0F172A"
+secondaryBackgroundColor = "#1E293B"
+textColor = "#F1F5F9"
+font = "sans serif"
+'''
+    
+    config_path = os.path.join(config_dir, "config.toml")
+    if not os.path.exists(config_path):
+        with open(config_path, "w") as f:
+            f.write(config_content)
+
+# Apply theme configuration
+configure_theme()
 
 def initialize_gemini():
-    """Initialize Gemini AI with API key"""
+    """Initialize Gemini AI with API key validation"""
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key or api_key == "your_gemini_api_key_here":
-        st.error("⚠️ Please set your Gemini API key in the .env file")
+        st.error("Gemini API Key Required")
+        st.info("Please configure your Gemini API key in the `.env` file")
         st.stop()
     
     genai.configure(api_key=api_key)
@@ -149,7 +96,6 @@ def extract_text_from_file(uploaded_file):
 def upload_file_to_gemini(file_content, file_name, mime_type):
     """Upload file to Gemini Files API"""
     try:
-        # Create a temporary file
         with tempfile.NamedTemporaryFile(mode='w+b', delete=False, suffix=f"_{file_name}") as tmp_file:
             if isinstance(file_content, str):
                 tmp_file.write(file_content.encode('utf-8'))
@@ -157,13 +103,11 @@ def upload_file_to_gemini(file_content, file_name, mime_type):
                 tmp_file.write(file_content)
             tmp_file_path = tmp_file.name
         
-        # Upload to Gemini
         uploaded_file = genai.upload_file(
             path=tmp_file_path,
             display_name=file_name
         )
         
-        # Clean up temporary file
         os.unlink(tmp_file_path)
         
         # Wait for file processing
@@ -181,32 +125,33 @@ def upload_file_to_gemini(file_content, file_name, mime_type):
         return None
 
 def start_interactive_interview(model, resume_file, job_description):
-    """Start an interactive interview simulation"""
-    
+    """Initialize interactive interview session"""
     initial_prompt = f"""
-    You are conducting a live technical interview simulation. I will provide you with a candidate's resume and a job description.
+    You are a professional AI interview assistant conducting a technical interview simulation. 
+    I will provide you with a candidate's resume and a job description.
 
     Your role is to conduct a realistic interview by:
-    1. First, briefly introduce yourself and the interview process (2-3 sentences)
-    2. Then ask ONE question at a time - start with a warm-up question
+    1. First, briefly introduce yourself as an AI interview assistant and explain the process (2-3 sentences)
+    2. Ask ONE question at a time - start with a warm-up question
     3. Wait for the candidate's response before moving to the next question
-    4. Give brief feedback (1-2 sentences) on each answer before asking the next question
+    4. Provide brief, constructive feedback (1-2 sentences) on each answer before asking the next question
     5. Progress through different types of questions: technical basics → intermediate → advanced → behavioral → scenario-based
-    6. After 8-10 questions, provide comprehensive feedback on their performance
+    6. After 8-10 questions, provide comprehensive performance feedback
 
-    IMPORTANT RULES:
+    IMPORTANT GUIDELINES:
     - Ask only ONE question per response
-    - Keep your feedback brief and encouraging
+    - Keep feedback brief and professional
     - Adapt difficulty based on their answers
-    - Remember their resume and this job description throughout
-    - Don't list all questions at once - this is a live interview simulation
+    - Remember their resume and job requirements throughout
+    - This is a live interview simulation - don't list all questions at once
+    - Maintain a professional, supportive tone throughout
 
     **Job Description:**
     {job_description}
 
     **Resume:** (attached file)
 
-    Start by introducing yourself and asking your first question.
+    Begin by introducing yourself and asking your first question.
     """
     
     try:
@@ -217,42 +162,41 @@ def start_interactive_interview(model, resume_file, job_description):
         return None
 
 def generate_interview_feedback(chat_session):
-    """Generate comprehensive feedback after the interview"""
-    
+    """Generate comprehensive feedback after interview completion"""
     feedback_prompt = """
-    The interview simulation is now complete. Please provide comprehensive feedback on the candidate's performance.
+    The interview simulation is now complete. Please provide comprehensive performance feedback in a professional format.
 
     Structure your feedback as follows:
 
-    ## 📊 INTERVIEW PERFORMANCE SUMMARY
+    ## Interview Performance Analysis
 
-    ### ✅ **Strengths Demonstrated:**
+    ### Strengths Demonstrated:
     - List 3-4 key strengths shown during the interview
 
-    ### 🎯 **Areas for Improvement:**
-    - List 2-3 specific areas to work on
+    ### Areas for Development:
+    - List 2-3 specific areas that need improvement
 
-    ### 📈 **Technical Assessment:**
-    - Rate technical knowledge (1-10)
-    - Comment on problem-solving approach
-    - Note any gaps in required skills
+    ### Technical Assessment:
+    - Rate technical knowledge (1-10 scale)
+    - Evaluate problem-solving approach
+    - Note any skill gaps relative to role requirements
 
-    ### 🗣️ **Communication & Soft Skills:**
-    - Clarity of explanations
-    - Confidence level
-    - Behavioral responses quality
+    ### Communication Evaluation:
+    - Assess clarity and articulation
+    - Evaluate confidence and presence
+    - Review behavioral response quality
 
-    ### 💡 **Recommendations:**
-    - Specific study suggestions
-    - Practice areas to focus on
-    - Interview tips for improvement
+    ### Recommendations:
+    - Provide specific study suggestions
+    - Identify key practice areas
+    - Share interview improvement strategies
 
-    ### 🎯 **Overall Readiness:**
-    - Current readiness level for this role
-    - Timeline suggestion for improvement
-    - Confidence rating for similar interviews
+    ### Overall Readiness:
+    - Current readiness assessment for this role
+    - Recommended preparation timeline
+    - Confidence level for similar interviews
 
-    Make it encouraging but honest, with actionable advice.
+    Provide honest, constructive feedback with actionable improvement suggestions.
     """
     
     try:
@@ -263,258 +207,361 @@ def generate_interview_feedback(chat_session):
         return None
 
 def main():
+    """Main application with modern Streamlit UI"""
+    
     # Initialize session state
-    if 'model' not in st.session_state:
-        st.session_state.model = initialize_gemini()
+    initialize_session_state()
     
-    if 'chat_history' not in st.session_state:
-        st.session_state.chat_history = []
+    # Modern header with logo and title
+    render_header()
     
-    if 'resume_uploaded' not in st.session_state:
-        st.session_state.resume_uploaded = False
-    
-    if 'resume_file' not in st.session_state:
-        st.session_state.resume_file = None
-    
-    if 'job_description' not in st.session_state:
-        st.session_state.job_description = ""
-    
-    if 'session_started' not in st.session_state:
-        st.session_state.session_started = False
-    
-    if 'chat_session' not in st.session_state:
-        st.session_state.chat_session = None
-    
-    if 'question_count' not in st.session_state:
-        st.session_state.question_count = 0
-    
-    if 'interview_complete' not in st.session_state:
-        st.session_state.interview_complete = False
-
-    # Header
-    st.markdown('<h1 class="main-header">🤖 Tech Interview Copilot</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">Interactive AI interview simulation - Practice with a virtual interviewer</p>', unsafe_allow_html=True)
-
-    # Setup Section
+    # Main content area
     if not st.session_state.session_started:
-        st.markdown('<div class="upload-section">', unsafe_allow_html=True)
+        render_setup_screen()
+    else:
+        render_interview_screen()
+
+def initialize_session_state():
+    """Initialize all session state variables"""
+    default_states = {
+        'model': None,
+        'chat_history': [],
+        'resume_uploaded': False,
+        'resume_file': None,
+        'job_description': "",
+        'session_started': False,
+        'chat_session': None,
+        'question_count': 0,
+        'interview_complete': False
+    }
+    
+    for key, default_value in default_states.items():
+        if key not in st.session_state:
+            st.session_state[key] = default_value
+    
+    # Initialize AI model
+    if st.session_state.model is None:
+        st.session_state.model = initialize_gemini()
+
+def render_header():
+    """Render modern application header"""
+    st.markdown("# AI Interview Assistant")
+    st.markdown("*Professional interview preparation with advanced AI*")
+    st.divider()
+
+def render_setup_screen():
+    """Render the initial setup screen"""
+    # Setup tabs
+    tab1, tab2 = st.tabs(["Resume Upload", "Job Details"])
+    
+    with tab1:
+        render_resume_upload()
+    
+    with tab2:
+        render_job_description()
+    
+    # Start button
+    st.markdown("### Ready to Begin?")
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        if st.button("Start Interview Session", type="primary", use_container_width=True):
+            if validate_setup():
+                with st.spinner("Starting interview session..."):
+                    start_interview_session()
+
+def render_resume_upload():
+    """Render resume upload section"""
+    if not st.session_state.resume_uploaded:
+        st.markdown("#### Upload Your Resume")
+        st.info("Upload your resume to personalize the interview experience")
         
-        # Resume Upload
-        st.subheader("📄 Upload Your Resume")
-        
-        if not st.session_state.resume_uploaded:
-            uploaded_file = st.file_uploader(
-                "Choose your resume file",
-                type=['pdf', 'docx', 'txt'],
-                help="Supported formats: PDF, DOCX, TXT (Max 2GB)"
-            )
-            
-            if uploaded_file is not None:
-                with st.spinner("Processing resume..."):
-                    # Extract text content
-                    file_content = uploaded_file.getvalue()
-                    
-                    # Upload to Gemini
-                    gemini_file = upload_file_to_gemini(
-                        file_content, 
-                        uploaded_file.name, 
-                        uploaded_file.type
-                    )
-                    
-                    if gemini_file:
-                        st.session_state.resume_file = gemini_file
-                        st.session_state.resume_uploaded = True
-                        st.success(f"✅ Resume uploaded successfully: {uploaded_file.name}")
-                        st.rerun()
-        else:
-            st.markdown('<p class="status-success">✅ Resume uploaded and ready</p>', unsafe_allow_html=True)
-        
-        st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
-        
-        # Job Description Input
-        st.subheader("💼 Job Description")
-        job_desc = st.text_area(
-            "Paste the job description here",
-            height=200,
-            placeholder="Copy and paste the full job description, including requirements, responsibilities, and qualifications...",
-            value=st.session_state.job_description
+        uploaded_file = st.file_uploader(
+            "Choose your resume file",
+            type=['pdf', 'docx', 'txt'],
+            help="Supported formats: PDF, DOCX, TXT"
         )
         
-        if job_desc != st.session_state.job_description:
-            st.session_state.job_description = job_desc
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Start Session Button
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            if st.button("🚀 Start Interview Simulation", type="primary", use_container_width=True):
-                if not st.session_state.resume_uploaded:
-                    st.error("⚠️ Please upload your resume first")
-                elif not st.session_state.job_description.strip():
-                    st.error("⚠️ Please enter the job description")
-                else:
-                    with st.spinner("Starting your interactive interview simulation..."):
-                        # Start interactive interview
-                        initial_response = start_interactive_interview(
-                            st.session_state.model,
-                            st.session_state.resume_file,
-                            st.session_state.job_description
-                        )
-                        
-                        if initial_response:
-                            # Create chat session
-                            st.session_state.chat_session = st.session_state.model.start_chat(history=[])
-                            
-                            # Add to chat history
-                            st.session_state.chat_history.append({
-                                "role": "assistant",
-                                "content": initial_response
-                            })
-                            
-                            st.session_state.session_started = True
-                            st.session_state.question_count = 1
-                            st.success("🎉 Interview simulation started! The interviewer is ready to begin.")
-                            st.rerun()
-
-    # Chat Interface
-    if st.session_state.session_started:
-        st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
-        
-        if not st.session_state.interview_complete:
-            st.subheader("🎙️ Live Interview Simulation")
-            st.markdown("**Instructions:** Answer each question as you would in a real interview. The interviewer will provide brief feedback and ask the next question.")
-        else:
-            st.subheader("📋 Interview Complete - Final Feedback")
-        
-        # Display chat history
-        for message in st.session_state.chat_history:
-            if message["role"] == "user":
-                st.markdown(f'<div class="chat-message user-message"><strong style="color: #1976d2;">You:</strong><br><span style="color: #1a1a1a;">{message["content"]}</span></div>', unsafe_allow_html=True)
-            else:
-                st.markdown(f'<div class="chat-message bot-message"><strong style="color: #388e3c;">Interviewer:</strong><br><span style="color: #1a1a1a;">{message["content"]}</span></div>', unsafe_allow_html=True)
-        
-        # Chat input (only show if interview not complete)
-        if not st.session_state.interview_complete:
-            user_input = st.text_area(
-                "Your answer:",
-                placeholder="Type your answer here... Be specific and provide examples when possible.",
-                key="chat_input",
-                height=100
-            )
-            
-            col1, col2, col3 = st.columns([1, 1, 1])
-            
-            with col1:
-                if st.button("📤 Submit Answer", type="primary", use_container_width=True) and user_input.strip():
-                    # Add user message to history
-                    st.session_state.chat_history.append({
-                        "role": "user",
-                        "content": user_input
-                    })
+        if uploaded_file is not None:
+            with st.spinner("Processing your resume..."):
+                file_content = uploaded_file.getvalue()
+                gemini_file = upload_file_to_gemini(
+                    file_content, 
+                    uploaded_file.name, 
+                    uploaded_file.type
+                )
+                
+                if gemini_file:
+                    st.session_state.resume_file = gemini_file
+                    st.session_state.resume_uploaded = True
+                    st.success("Resume processed successfully!")
                     
-                    with st.spinner("Interviewer is reviewing your answer..."):
-                        try:
-                            # Increment question count
-                            st.session_state.question_count += 1
-                            
-                            # Check if we should end the interview
-                            if st.session_state.question_count >= 10:
-                                # Generate final feedback
-                                feedback = generate_interview_feedback(st.session_state.chat_session)
-                                if feedback:
-                                    st.session_state.chat_history.append({
-                                        "role": "assistant",
-                                        "content": feedback
-                                    })
-                                    st.session_state.interview_complete = True
-                            else:
-                                # Continue with next question
-                                prompt = f"The candidate answered: '{user_input}'\n\nProvide brief feedback (1-2 sentences) on their answer, then ask your next interview question. This is question #{st.session_state.question_count} of approximately 8-10 total questions."
-                                response = st.session_state.chat_session.send_message(prompt)
-                                
-                                # Add AI response to history
-                                st.session_state.chat_history.append({
-                                    "role": "assistant",
-                                    "content": response.text
-                                })
-                            
-                            st.rerun()
-                            
-                        except Exception as e:
-                            st.error(f"Error during interview: {str(e)}")
-            
-            with col2:
-                if st.button("🔄 Skip Question", type="secondary", use_container_width=True):
-                    # Add skip message
-                    st.session_state.chat_history.append({
-                        "role": "user",
-                        "content": "[Skipped this question]"
-                    })
-                    
-                    with st.spinner("Moving to next question..."):
-                        try:
-                            st.session_state.question_count += 1
-                            
-                            if st.session_state.question_count >= 10:
-                                feedback = generate_interview_feedback(st.session_state.chat_session)
-                                if feedback:
-                                    st.session_state.chat_history.append({
-                                        "role": "assistant", 
-                                        "content": feedback
-                                    })
-                                    st.session_state.interview_complete = True
-                            else:
-                                prompt = f"The candidate skipped the previous question. Please ask your next interview question. This is question #{st.session_state.question_count} of approximately 8-10 total questions."
-                                response = st.session_state.chat_session.send_message(prompt)
-                                
-                                st.session_state.chat_history.append({
-                                    "role": "assistant",
-                                    "content": response.text
-                                })
-                            
-                            st.rerun()
-                            
-                        except Exception as e:
-                            st.error(f"Error skipping question: {str(e)}")
-            
-            with col3:
-                if st.button("⏹️ End Interview", type="secondary", use_container_width=True):
-                    with st.spinner("Generating final feedback..."):
-                        try:
-                            feedback = generate_interview_feedback(st.session_state.chat_session)
-                            if feedback:
-                                st.session_state.chat_history.append({
-                                    "role": "assistant",
-                                    "content": feedback
-                                })
-                                st.session_state.interview_complete = True
-                                st.rerun()
-                        except Exception as e:
-                            st.error(f"Error ending interview: {str(e)}")
-            
-            # Progress indicator
-            progress = min(st.session_state.question_count / 10, 1.0)
-            st.progress(progress, text=f"Interview Progress: Question {st.session_state.question_count}/~10")
-        
-        else:
-            # Interview complete - show restart option
-            st.success("🎉 Interview simulation complete! Review your feedback above.")
-            col1, col2, col3 = st.columns([1, 2, 1])
-            with col2:
-                if st.button("🔄 Start New Interview", type="primary", use_container_width=True):
-                    # Clear session state
-                    for key in ['chat_history', 'resume_uploaded', 'resume_file', 'job_description', 'session_started', 'chat_session', 'question_count', 'interview_complete']:
-                        if key in st.session_state:
-                            del st.session_state[key]
+                    time.sleep(0.5)
                     st.rerun()
+    else:
+        st.success("Resume ready for analysis")
+        if st.button("Upload Different Resume", type="secondary"):
+            st.session_state.resume_uploaded = False
+            st.session_state.resume_file = None
+            st.info("Please upload a new resume file")
+            time.sleep(0.5)
+            st.rerun()
 
-    # Footer
-    st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
-    st.markdown(
-        '<p style="text-align: center; color: #666; font-size: 0.9rem;">Built with ❤️ using Streamlit and Gemini AI</p>',
-        unsafe_allow_html=True
+def render_job_description():
+    """Render job description input section"""
+    st.markdown("#### Job Description")
+    st.info("Paste the job description to tailor interview questions")
+    
+    job_desc = st.text_area(
+        "Job Description",
+        height=300,
+        placeholder="Paste the complete job description here...\n\nThe AI will analyze requirements and tailor questions accordingly.",
+        value=st.session_state.job_description,
+        label_visibility="collapsed"
     )
+    
+    if job_desc != st.session_state.job_description:
+        st.session_state.job_description = job_desc
+        
+    # Job description analysis
+    if st.session_state.job_description.strip():
+        word_count = len(st.session_state.job_description.split())
+        st.caption(f"Analysis ready • {word_count} words")
+
+def validate_setup():
+    """Validate setup before starting interview"""
+    if not st.session_state.resume_uploaded:
+        st.error("Please upload your resume first")
+        return False
+    
+    if not st.session_state.job_description.strip():
+        st.error("Please provide the job description")
+        return False
+    
+    return True
+
+def start_interview_session():
+    """Initialize and start the interview session"""
+    with st.spinner("AI is preparing your personalized interview..."):
+        initial_response = start_interactive_interview(
+            st.session_state.model,
+            st.session_state.resume_file,
+            st.session_state.job_description
+        )
+        
+        if initial_response:
+            st.session_state.chat_session = st.session_state.model.start_chat(history=[])
+            st.session_state.chat_history.append({
+                "role": "assistant",
+                "content": initial_response
+            })
+            st.session_state.session_started = True
+            st.session_state.question_count = 1
+            
+            st.success("Interview session initialized!")
+            
+            time.sleep(0.5)
+            st.rerun()
+
+def render_interview_screen():
+    """Render the active interview interface"""
+    if not st.session_state.interview_complete:
+        render_active_interview()
+    else:
+        render_interview_complete()
+
+def render_active_interview():
+    """Render active interview interface"""
+    # Interview header
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col1:
+        st.metric("Question", f"{st.session_state.question_count}/10")
+    
+    with col2:
+        progress = min(st.session_state.question_count / 10, 1.0)
+        st.progress(progress, text="Interview Progress")
+    
+    with col3:
+        st.info("Chat Mode")
+    
+    st.divider()
+    
+    # Control panel
+    render_text_controls()
+    
+    st.divider()
+    
+    # Chat history
+    render_chat_history()
+
+def render_text_controls():
+    """Render text input interface"""
+    user_input = st.text_area(
+        "Your Response",
+        placeholder="Type your answer here...",
+        height=120,
+        key="text_response"
+    )
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("Submit Answer", type="primary", use_container_width=True) and user_input.strip():
+            with st.spinner("Processing your response..."):
+                process_user_response(user_input, is_voice=False)
+                st.success("Response submitted successfully!")
+                time.sleep(0.5)
+                st.rerun()
+    
+    with col2:
+        if st.button("Skip Question", use_container_width=True):
+            with st.spinner("Moving to next question..."):
+                handle_skip_question()
+                time.sleep(0.5)
+                st.rerun()
+    
+    with col3:
+        if st.button("End Interview", use_container_width=True, type="secondary"):
+            with st.spinner("Ending interview..."):
+                handle_end_interview()
+                time.sleep(0.5)
+                st.rerun()
+
+def render_chat_history():
+    """Render chat history with modern styling"""
+    st.markdown("### Interview Conversation")
+    
+    for i, message in enumerate(st.session_state.chat_history):
+        if message["role"] == "user":
+            with st.chat_message("user"):
+                st.write(message["content"])
+        else:
+            with st.chat_message("assistant"):
+                st.write(message["content"])
+
+def render_interview_complete():
+    """Render interview completion screen"""
+    st.markdown("## Interview Complete!")
+    st.success("Congratulations! You've completed your interview session.")
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        if st.button("Start New Interview", type="primary", use_container_width=True):
+            with st.spinner("Preparing new interview..."):
+                reset_session()
+                time.sleep(0.5)
+                st.rerun()
+    
+    st.divider()
+    
+    # Show final conversation
+    render_chat_history()
+
+def process_user_response(user_response: str, is_voice: bool = False):
+    """Process user response and generate next question"""
+    # Add user message to history
+    st.session_state.chat_history.append({
+        "role": "user",
+        "content": user_response
+    })
+    
+    with st.spinner("AI is analyzing your response..."):
+        try:
+            st.session_state.question_count += 1
+            
+            # Check if interview should end
+            if st.session_state.question_count >= 10:
+                # Generate final feedback
+                feedback = generate_interview_feedback(st.session_state.chat_session)
+                if feedback:
+                    st.session_state.chat_history.append({
+                        "role": "assistant",
+                        "content": feedback
+                    })
+                    st.session_state.interview_complete = True
+            else:
+                # Continue with next question
+                prompt = f"""The candidate answered: '{user_response}'
+
+Provide brief feedback (1-2 sentences) on their answer, then ask your next interview question. 
+This is question #{st.session_state.question_count} of approximately 8-10 total questions. 
+Keep your response concise and professional."""
+                
+                response = st.session_state.chat_session.send_message(prompt)
+                
+                st.session_state.chat_history.append({
+                    "role": "assistant",
+                    "content": response.text
+                })
+        
+        except Exception as e:
+            st.error(f"Error processing response: {str(e)}")
+
+def handle_skip_question():
+    """Handle skipping current question"""
+    st.session_state.chat_history.append({
+        "role": "user",
+        "content": "[Question skipped]"
+    })
+    
+    with st.spinner("Moving to next question..."):
+        try:
+            st.session_state.question_count += 1
+            
+            if st.session_state.question_count >= 10:
+                feedback = generate_interview_feedback(st.session_state.chat_session)
+                if feedback:
+                    st.session_state.chat_history.append({
+                        "role": "assistant", 
+                        "content": feedback
+                    })
+                    st.session_state.interview_complete = True
+            else:
+                prompt = f"The candidate skipped the previous question. Please ask your next interview question. This is question #{st.session_state.question_count} of approximately 8-10 total questions."
+                response = st.session_state.chat_session.send_message(prompt)
+                
+                st.session_state.chat_history.append({
+                    "role": "assistant",
+                    "content": response.text
+                })
+                    
+        except Exception as e:
+            st.error(f"Error skipping question: {str(e)}")
+
+def handle_end_interview():
+    """Handle ending interview early"""
+    with st.spinner("Generating final analysis..."):
+        try:
+            feedback = generate_interview_feedback(st.session_state.chat_session)
+            if feedback:
+                st.session_state.chat_history.append({
+                    "role": "assistant",
+                    "content": feedback
+                })
+                st.session_state.interview_complete = True
+                    
+        except Exception as e:
+            st.error(f"Error ending interview: {str(e)}")
+
+def reset_session():
+    """Reset all session state for new interview"""
+    keys_to_reset = [
+        'chat_history', 'resume_uploaded', 'resume_file', 'job_description', 
+        'session_started', 'chat_session', 'question_count', 'interview_complete'
+    ]
+    
+    for key in keys_to_reset:
+        if key in st.session_state:
+            if key in ['chat_history']:
+                st.session_state[key] = []
+            elif key in ['resume_uploaded', 'session_started', 'interview_complete']:
+                st.session_state[key] = False
+            elif key in ['question_count']:
+                st.session_state[key] = 0
+            else:
+                st.session_state[key] = None
 
 if __name__ == "__main__":
     main()
